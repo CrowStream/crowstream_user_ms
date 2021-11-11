@@ -1,8 +1,6 @@
 import {AuthenticationComponent} from '@loopback/authentication';
 import {
-  JWTAuthenticationComponent,
-  RefreshTokenServiceBindings,
-  TokenServiceBindings,
+  JWTAuthenticationComponent, TokenServiceBindings,
   UserServiceBindings
 } from '@loopback/authentication-jwt';
 import {BootMixin} from '@loopback/boot';
@@ -60,10 +58,6 @@ export class AccountMicroService extends BootMixin(
     // For jwt access token
     this.bind(TokenServiceBindings.TOKEN_SECRET).to(process.env.ACCESS_TOKEN_SECRET || 'access_secret');
     this.bind(TokenServiceBindings.TOKEN_EXPIRES_IN).to(process.env.ACCESS_TOKEN_EXPIRATION_TIME || '3600');
-
-    // For jwt refresh token
-    this.bind(RefreshTokenServiceBindings.REFRESH_SECRET).to(process.env.REFRESH_TOKEN_SECRET || 'refresh_secret');
-    this.bind(RefreshTokenServiceBindings.REFRESH_EXPIRES_IN).to(process.env.REFRESH_TOKEN_EXPIRATION_TIME || '604800');
 
     // Bind datasource
     this.dataSource(DbDataSource, UserServiceBindings.DATASOURCE_NAME);

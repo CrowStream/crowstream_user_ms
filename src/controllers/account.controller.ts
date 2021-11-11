@@ -1,5 +1,7 @@
 import {TokenService} from '@loopback/authentication';
-import {TokenServiceBindings} from '@loopback/authentication-jwt';
+import {
+  TokenServiceBindings
+} from '@loopback/authentication-jwt';
 import {inject} from '@loopback/core';
 import {
   Count,
@@ -22,7 +24,6 @@ export class AccountController {
     @repository(AccountCredentialsRepository) protected accountCredentialsRepository: AccountCredentialsRepository,
     @inject('services.AccountService') public accountService: AccountService,
     @inject(TokenServiceBindings.TOKEN_SERVICE) protected jwtService: TokenService,
-    // @inject(RefreshTokenServiceBindings.REFRESH_TOKEN_SERVICE) protected refreshTokenService: RefreshTokenService,
   ) { }
 
   @post('/signup')
@@ -92,7 +93,7 @@ export class AccountController {
       }
     })
     credentials: AccountCredentialsBody,
-  ): Promise<String> {
+  ): Promise<{token: string}> {
     const errorMessage = 'Email or password invalid';
 
     const account = await this.accountService.findByEmail(credentials.email);
@@ -118,10 +119,9 @@ export class AccountController {
     }
 
     const userProfile = this.accountService.convertToUserProfile(account);
-    const accessToken = await this.jwtService.generateToken(userProfile);
-    // const refreshToken = await this.refreshTokenService.generateToken(userProfile, accessToken);
+    const token = await this.jwtService.generateToken(userProfile);
 
-    return accessToken;
+    return {token};
   }
 
   @get('/account/count')
