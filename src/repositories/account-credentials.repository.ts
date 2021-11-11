@@ -1,6 +1,6 @@
 import {Getter, inject} from '@loopback/core';
 import {BelongsToAccessor, DefaultCrudRepository, repository} from '@loopback/repository';
-import {DatabaseDataSource} from '../datasources';
+import {DbDataSource} from '../datasources';
 import {Account, AccountCredentials, AccountCredentialsRelations} from '../models';
 import {AccountRepository} from './account.repository';
 
@@ -13,7 +13,7 @@ export class AccountCredentialsRepository extends DefaultCrudRepository<
   public readonly Account: BelongsToAccessor<Account, typeof AccountCredentials.prototype.id>;
 
   constructor(
-    @inject('datasources.database') dataSource: DatabaseDataSource,
+    @inject('datasources.database') dataSource: DbDataSource,
     @repository.getter('AccountRepository') protected accountRepositoryGetter: Getter<AccountRepository>,
   ) {
     super(AccountCredentials, dataSource);

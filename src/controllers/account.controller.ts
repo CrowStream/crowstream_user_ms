@@ -1,3 +1,6 @@
+import {TokenService} from '@loopback/authentication';
+import {TokenServiceBindings} from '@loopback/authentication-jwt';
+import {inject} from '@loopback/core';
 import {
   Count,
   CountSchema, repository,
@@ -6,43 +9,24 @@ import {
 import {
   get, HttpErrors, param, post, requestBody, response
 } from '@loopback/rest';
-import {genSalt, hash} from 'bcryptjs';
-import {Account, AccountCredentials, AccountCredentialsRequest} from '../models';
+import {compare, genSalt, hash} from 'bcryptjs';
+import {AccountCredentialsBody} from '../bodies';
+import {Account, AccountCredentials} from '../models';
 import {AccountCredentialsRepository, AccountRepository} from '../repositories';
 import {AccountCredentialsSchema} from '../schemas';
+import {AccountService} from '../services';
 
 export class AccountController {
   constructor(
     @repository(AccountRepository) protected accountRepository: AccountRepository,
     @repository(AccountCredentialsRepository) protected accountCredentialsRepository: AccountCredentialsRepository,
+    @inject('services.AccountService') public accountService: AccountService,
+    @inject(TokenServiceBindings.TOKEN_SERVICE) protected jwtService: TokenService,
+    // @inject(RefreshTokenServiceBindings.REFRESH_TOKEN_SERVICE) protected refreshTokenService: RefreshTokenService,
   ) { }
 
-  // @post('/accounts/signin')
-  // @response(200, {
-  //   description: 'Login',
-  //   content: {
-  //     'application/json': {
-  //       schema: {
-  //         'x-ts-type': AccountCredentialsSchema
-  //       }
-  //     }
-  //   }
-  // })
-  // async signin(
-  //   @requestBody({
-  //     content: {
-  //       'application/json': {
-  //         schema: AccountCredentialsSchema,
-  //       }
-  //     }
-  //   })
-  //   credentials: AccountCredentials,
-  // ): Promise<String> {
-  //   return 'Login UwU';
-  // }
-
-  @post('/accounts/signup')
-  @response(200, {
+  @post('/signup')
+  @response(201, {
     description: 'Register a new account',
     content: {
       'application/json': {
@@ -58,7 +42,7 @@ export class AccountController {
         },
       },
     })
-    newAccountRequest: AccountCredentialsRequest,
+    newAccountRequest: AccountCredentialsBody,
   ): Promise<Account> {
     const existingAccount = await this.accountRepository.count(
       {
@@ -77,7 +61,6 @@ export class AccountController {
     if (accountCreated === undefined) {
       throw new HttpErrors[500]('Account could not be created :c');
     }
-    console.log('Account created:\n', accountCreated, '\n');
 
     const newAccountCredentials = new AccountCredentials({
       account_id: accountCreated.id,
@@ -89,6 +72,56 @@ export class AccountController {
     }
 
     return accountCreated;
+  }
+
+  @post('/accounts/signin')
+  @response(200, {
+    description: 'Login',
+    content: {
+      'application/json': {
+        schema: AccountCredentialsSchema
+      }
+    }
+  })
+  async signin(
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: AccountCredentialsSchema,
+        }
+      }
+    })
+    credentials: AccountCredentialsBody,
+  ): Promise<String> {
+    const errorMessage = 'Email or password invalid';
+
+    const account = await this.accountService.findByEmail(credentials.email);
+    if (account === null) {
+      throw new HttpErrors[404](errorMessage);
+    }
+
+    const accountCredentials = await this.accountCredentialsRepository.findOne({
+      where: {
+        account_id: account.id
+      }
+    });
+    if (accountCredentials === null) {
+      throw new HttpErrors[404](errorMessage);
+    }
+
+    const doesPasswordMatch = await compare(
+      credentials.password,
+      accountCredentials.password
+    );
+    if (!doesPasswordMatch) {
+      throw new HttpErrors[404](errorMessage);
+    }
+
+    const userProfile = this.accountService.convertToUserProfile(account);
+    const accessToken = await this.jwtService.generateToken(userProfile);
+    // const refreshToken = await this.refreshTokenService.generateToken(userProfile, accessToken);
+
+    return accessToken;
   }
 
   @get('/account/count')
