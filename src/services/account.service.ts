@@ -1,5 +1,5 @@
-import { /* inject, */ BindingScope, injectable} from '@loopback/core';
-import {repository} from '@loopback/repository';
+import {BindingScope, injectable} from '@loopback/core';
+import {Count, repository, Where} from '@loopback/repository';
 import {securityId, UserProfile} from '@loopback/security';
 import {Account, AccountRelations} from '../models';
 import {AccountRepository} from '../repositories';
@@ -17,6 +17,10 @@ export class AccountService {
     };
   }
 
+  async create(newAccount: Account): Promise<Account> {
+    return this.accountRepository.create(newAccount);
+  }
+
   async findByEmail(email: string): Promise<(Account & AccountRelations) | null> {
     return this.accountRepository.findOne(
       {
@@ -25,5 +29,9 @@ export class AccountService {
         }
       }
     );
+  }
+
+  async count(where: Where<Account> | undefined): Promise<Count> {
+    return this.accountRepository.count(where);
   }
 }

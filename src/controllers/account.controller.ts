@@ -5,23 +5,19 @@ import {
 import {inject} from '@loopback/core';
 import {
   Count,
-  CountSchema, repository,
-  Where
+  CountSchema, Where
 } from '@loopback/repository';
 import {
   get, HttpErrors, param, post, requestBody, response
 } from '@loopback/rest';
-import {compare, genSalt, hash} from 'bcryptjs';
 import {AccountCredentialsBody} from '../bodies';
 import {Account, AccountCredentials} from '../models';
-import {AccountCredentialsRepository, AccountRepository} from '../repositories';
 import {AccountCredentialsSchema} from '../schemas';
-import {AccountService} from '../services';
+import {AccountCredentialsService, AccountService} from '../services';
 
 export class AccountController {
   constructor(
-    @repository(AccountRepository) protected accountRepository: AccountRepository,
-    @repository(AccountCredentialsRepository) protected accountCredentialsRepository: AccountCredentialsRepository,
+    @inject('services.AccountCredentialsService') protected accountCredentialsService: AccountCredentialsService,
     @inject('services.AccountService') public accountService: AccountService,
     @inject(TokenServiceBindings.TOKEN_SERVICE) protected jwtService: TokenService,
   ) { }
@@ -45,29 +41,25 @@ export class AccountController {
     })
     newAccountRequest: AccountCredentialsBody,
   ): Promise<Account> {
-    const existingAccount = await this.accountRepository.count(
-      {
-        email: newAccountRequest.email
-      }
-    );
-    if (existingAccount.count > 0) {
+    const existingAccount = await this.accountService.findByEmail(newAccountRequest.email);
+    if (existingAccount !== null) {
       throw new HttpErrors[400]('The email provided is already in use');
     }
 
-    const password = await hash(newAccountRequest.password, await genSalt());
     const newAccount = new Account({
       email: newAccountRequest.email,
     });
-    const accountCreated = await this.accountRepository.create(newAccount);
+    const accountCreated = await this.accountService.create(newAccount);
     if (accountCreated === undefined) {
       throw new HttpErrors[500]('Account could not be created :c');
     }
 
+    const password = await this.accountCredentialsService.getPasswordHash(newAccountRequest.password);
     const newAccountCredentials = new AccountCredentials({
       account_id: accountCreated.id,
       password,
     });
-    const accountCredentialsCreated = await this.accountCredentialsRepository.create(newAccountCredentials);
+    const accountCredentialsCreated = await this.accountCredentialsService.create(newAccountCredentials);
     if (accountCredentialsCreated === undefined) {
       throw new HttpErrors[500]('Account could not be created :c');
     }
@@ -101,16 +93,12 @@ export class AccountController {
       throw new HttpErrors[404](errorMessage);
     }
 
-    const accountCredentials = await this.accountCredentialsRepository.findOne({
-      where: {
-        account_id: account.id
-      }
-    });
+    const accountCredentials = await this.accountCredentialsService.findByAccountId(account.id);
     if (accountCredentials === null) {
       throw new HttpErrors[404](errorMessage);
     }
 
-    const doesPasswordMatch = await compare(
+    const doesPasswordMatch = await this.accountCredentialsService.comparePassword(
       credentials.password,
       accountCredentials.password
     );
@@ -132,6 +120,6 @@ export class AccountController {
   async count(
     @param.where(Account) where?: Where<Account>,
   ): Promise<Count> {
-    return this.accountRepository.count(where);
+    return this.accountService.count(where);
   }
 }
