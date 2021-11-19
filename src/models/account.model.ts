@@ -1,5 +1,6 @@
-import {Entity, hasOne, model, property} from '@loopback/repository';
+import {Entity, hasOne, model, property, hasMany} from '@loopback/repository';
 import {AccountCredentials} from './account-credentials.model';
+import {Profile} from './profile.model';
 
 @model()
 export class Account extends Entity {
@@ -31,6 +32,9 @@ export class Account extends Entity {
 
   @hasOne(() => AccountCredentials, {keyTo: 'account_id'})
   accountCredentials: AccountCredentials;
+
+  @hasMany(() => Profile, {keyTo: 'account_id'})
+  profiles: Profile[];
 
   constructor(data?: Partial<Account>) {
     super(data);
