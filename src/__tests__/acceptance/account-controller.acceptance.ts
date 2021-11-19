@@ -21,4 +21,6 @@ describe('PingController', () => {
   //   const res = await client.get('/ping?msg=world').expect(200);
   //   expect(res.body).to.containEql({greeting: 'Hello from LoopBack'});
   // });
+
+  // TODO: Follow this tutorial: https://loopback.io/doc/en/lb4/Testing-your-application.html#create-a-stub-repository
 });
