@@ -1,5 +1,6 @@
-import {Client, expect} from '@loopback/testlab';
+import {Client} from '@loopback/testlab';
 import {AccountMicroService} from '../..';
+import {givenEmptyDataBase} from '../helpers/database.helpers';
 import {setupApplication} from './test-helper';
 
 describe('PingController', () => {
@@ -10,12 +11,14 @@ describe('PingController', () => {
     ({app, client} = await setupApplication());
   });
 
+  beforeEach(givenEmptyDataBase);
+
   after(async () => {
     await app.stop();
   });
 
-  it('invokes GET /ping', async () => {
-    const res = await client.get('/ping?msg=world').expect(200);
-    expect(res.body).to.containEql({greeting: 'Hello from LoopBack'});
-  });
+  // it('invokes GET /ping', async () => {
+  //   const res = await client.get('/ping?msg=world').expect(200);
+  //   expect(res.body).to.containEql({greeting: 'Hello from LoopBack'});
+  // });
 });

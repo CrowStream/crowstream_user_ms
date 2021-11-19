@@ -4,7 +4,7 @@ import {juggler} from '@loopback/repository';
 require('dotenv').config();
 
 const config = {
-  name: 'database',
+  name: 'crowstream_user_db',
   connector: 'postgresql',
   url: '',
   host: process.env.POSTGRES_HOST,

@@ -1,9 +1,8 @@
-import {AccountMicroService} from '../..';
 import {
-  createRestAppClient,
-  givenHttpServerConfig,
-  Client,
+  Client, createRestAppClient,
+  givenHttpServerConfig
 } from '@loopback/testlab';
+import {AccountMicroService} from '../..';
 
 export async function setupApplication(): Promise<AppWithClient> {
   const restConfig = givenHttpServerConfig({
