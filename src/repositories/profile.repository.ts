@@ -1,7 +1,7 @@
-import {inject, Getter} from '@loopback/core';
-import {DefaultCrudRepository, repository, BelongsToAccessor} from '@loopback/repository';
+import {Getter, inject} from '@loopback/core';
+import {BelongsToAccessor, DefaultCrudRepository, repository} from '@loopback/repository';
 import {DbDataSource} from '../datasources';
-import {Profile, ProfileRelations, Account} from '../models';
+import {Account, Profile, ProfileRelations} from '../models';
 import {AccountRepository} from './account.repository';
 
 export class ProfileRepository extends DefaultCrudRepository<
@@ -13,10 +13,11 @@ export class ProfileRepository extends DefaultCrudRepository<
   public readonly account: BelongsToAccessor<Account, typeof Profile.prototype.id>;
 
   constructor(
-    @inject('datasources.database') dataSource: DbDataSource, @repository.getter('AccountRepository') protected accountRepositoryGetter: Getter<AccountRepository>,
+    @inject('datasources.database') dataSource: DbDataSource,
+    @repository.getter('AccountRepository') protected accountRepositoryGetter: Getter<AccountRepository>,
   ) {
     super(Profile, dataSource);
-    this.account = this.createBelongsToAccessorFor('account', accountRepositoryGetter,);
+    this.account = this.createBelongsToAccessorFor('Account', accountRepositoryGetter,);
     this.registerInclusionResolver('account', this.account.inclusionResolver);
   }
 }

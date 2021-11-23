@@ -1,5 +1,5 @@
 import {Getter, inject} from '@loopback/core';
-import {DefaultCrudRepository, HasOneRepositoryFactory, repository, HasManyRepositoryFactory} from '@loopback/repository';
+import {DefaultCrudRepository, HasManyRepositoryFactory, HasOneRepositoryFactory, repository} from '@loopback/repository';
 import {DbDataSource} from '../datasources';
 import {Account, AccountCredentials, AccountRelations, Profile} from '../models';
 import {AccountCredentialsRepository} from './account-credentials.repository';
@@ -17,7 +17,8 @@ export class AccountRepository extends DefaultCrudRepository<
 
   constructor(
     @inject('datasources.database') dataSource: DbDataSource,
-    @repository.getter('AccountCredentialsRepository') protected accountCredentialsRepositoryGetter: Getter<AccountCredentialsRepository>, @repository.getter('ProfileRepository') protected profileRepositoryGetter: Getter<ProfileRepository>,
+    @repository.getter('AccountCredentialsRepository') protected accountCredentialsRepositoryGetter: Getter<AccountCredentialsRepository>,
+    @repository.getter('ProfileRepository') protected profileRepositoryGetter: Getter<ProfileRepository>,
   ) {
     super(Account, dataSource);
     this.profiles = this.createHasManyRepositoryFactoryFor('profiles', profileRepositoryGetter,);

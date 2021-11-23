@@ -67,7 +67,7 @@ export class AccountController {
     return accountCreated;
   }
 
-  @post('/accounts/signin')
+  @post('/account/signin')
   @response(200, {
     description: 'Login',
     content: {

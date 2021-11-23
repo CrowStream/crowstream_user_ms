@@ -11,14 +11,18 @@ export class Profile extends Entity {
   })
   id: string;
 
+  @belongsTo(() =>
+    Account,
+    {name: 'Account'},
+    {type: 'string', required: true}
+  )
+  account_id: string;
+
   @property({
     type: 'string',
     required: true,
   })
   name: string;
-
-  @belongsTo(() => Account, {name: 'Account'})
-  account_id: string;
 
   constructor(data?: Partial<Profile>) {
     super(data);

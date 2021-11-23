@@ -1,4 +1,4 @@
-import {Entity, hasOne, model, property, hasMany} from '@loopback/repository';
+import {Entity, hasMany, hasOne, model, property} from '@loopback/repository';
 import {AccountCredentials} from './account-credentials.model';
 import {Profile} from './profile.model';
 
@@ -24,11 +24,6 @@ export class Account extends Entity {
     default: false,
   })
   is_email_verified: boolean;
-
-  @property({
-    type: 'number',
-  })
-  payment_method: number;
 
   @hasOne(() => AccountCredentials, {keyTo: 'account_id'})
   accountCredentials: AccountCredentials;
