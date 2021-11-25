@@ -56,8 +56,8 @@ export class AccountMicroService extends BootMixin(
     this.component(JWTAuthenticationComponent);
 
     // For jwt access token
-    this.bind(TokenServiceBindings.TOKEN_SECRET).to(process.env.ACCESS_TOKEN_SECRET || 'access_secret');
-    this.bind(TokenServiceBindings.TOKEN_EXPIRES_IN).to(process.env.ACCESS_TOKEN_EXPIRATION_TIME || '3600');
+    this.bind(TokenServiceBindings.TOKEN_SECRET).to(process.env.USER_MS_ACCESS_TOKEN_SECRET || 'access_secret');
+    this.bind(TokenServiceBindings.TOKEN_EXPIRES_IN).to(process.env.USER_MS_ACCESS_TOKEN_EXPIRATION_TIME || '3600');
 
     // Bind datasource
     this.dataSource(DbDataSource, UserServiceBindings.DATASOURCE_NAME);

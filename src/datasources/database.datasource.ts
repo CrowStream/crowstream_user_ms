@@ -7,11 +7,11 @@ const config = {
   name: 'database',
   connector: 'postgresql',
   url: '',
-  host: process.env.POSTGRES_HOST,
-  port: process.env.POSTGRES_PORT,
-  user: process.env.POSTGRES_USER,
-  password: process.env.POSTGRES_PASSWORD,
-  database: process.env.POSTGRES_DATABASE
+  host: process.env.USER_DB_HOST,
+  port: process.env.USER_DB_PORT,
+  user: process.env.USER_DB_USER,
+  password: process.env.USER_DB_PASSWORD,
+  database: process.env.USER_DB_DATABASE
 };
 
 // Observe application's life cycle to disconnect the datasource when
