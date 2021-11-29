@@ -14,3 +14,12 @@ export const AccountCredentialsSchema: SchemaObject = {
     },
   },
 };
+
+export const TokenSchema: SchemaObject = {
+  type: 'object',
+  properties: {
+    token: {
+      type: 'string',
+    }
+  },
+};

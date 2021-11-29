@@ -1,4 +1,4 @@
-import {TokenService} from '@loopback/authentication';
+import {authenticate, TokenService} from '@loopback/authentication';
 import {
   TokenServiceBindings
 } from '@loopback/authentication-jwt';
@@ -8,11 +8,12 @@ import {
   CountSchema, Where
 } from '@loopback/repository';
 import {
-  get, HttpErrors, param, post, requestBody, response
+  get, getModelSchemaRef, HttpErrors, param, post, requestBody, response
 } from '@loopback/rest';
+import {SecurityBindings, securityId, UserProfile} from '@loopback/security';
 import {AccountCredentialsBody} from '../bodies';
 import {Account, AccountCredentials} from '../models';
-import {AccountCredentialsSchema} from '../schemas';
+import {AccountCredentialsSchema, TokenSchema} from '../schemas';
 import {AccountCredentialsService, AccountService} from '../services';
 
 export class AccountController {
@@ -27,7 +28,7 @@ export class AccountController {
     description: 'Register a new account',
     content: {
       'application/json': {
-        schema: AccountCredentialsSchema,
+        schema: getModelSchemaRef(Account),
       }
     },
   })
@@ -67,12 +68,12 @@ export class AccountController {
     return accountCreated;
   }
 
-  @post('/account/signin')
+  @post('/signin')
   @response(200, {
     description: 'Login',
     content: {
       'application/json': {
-        schema: AccountCredentialsSchema
+        schema: TokenSchema
       }
     }
   })
@@ -110,6 +111,22 @@ export class AccountController {
     const token = await this.jwtService.generateToken(userProfile);
 
     return {token};
+  }
+
+  @authenticate('jwt')
+  @get('/whoAmI')
+  @response(200, {
+    description: 'Return the account infomation using the id included in the token',
+    content: {
+      'application/json': {
+        schema: getModelSchemaRef(Account),
+      }
+    }
+  })
+  async whoAmI(
+    @inject(SecurityBindings.USER) currentUser: UserProfile,
+  ): Promise<Account> {
+    return this.accountService.findById(currentUser[securityId]);
   }
 
   @get('/account/count')

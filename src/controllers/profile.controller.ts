@@ -2,8 +2,9 @@ import {authenticate} from '@loopback/authentication';
 import {inject} from '@loopback/core';
 import {get, getModelSchemaRef, HttpErrors, param, post, requestBody} from '@loopback/rest';
 import {SecurityBindings, securityId, UserProfile} from '@loopback/security';
+import {ProfilesResponse} from '../bodies/profile.body';
 import {Profile} from '../models';
-import {ProfileSchema, ProfilesResponse, ProfilesSchema} from '../schemas';
+import {ProfileSchema, ProfilesSchema} from '../schemas';
 import {ProfileService} from '../services';
 
 @authenticate('jwt')
@@ -19,7 +20,7 @@ export class ProfileControllerController {
         description: 'Create a new profile for an existing account',
         content: {
           'application/json': {
-            schema: ProfileSchema,
+            schema: getModelSchemaRef(Profile),
           }
         }
       }

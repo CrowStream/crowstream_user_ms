@@ -21,6 +21,10 @@ export class AccountService {
     return this.accountRepository.create(newAccount);
   }
 
+  async findById(id: string): Promise<(Account & AccountRelations)> {
+    return this.accountRepository.findById(id);
+  }
+
   async findByEmail(email: string): Promise<(Account & AccountRelations) | null> {
     return this.accountRepository.findOne(
       {
