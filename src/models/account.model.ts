@@ -1,5 +1,6 @@
-import {Entity, hasOne, model, property} from '@loopback/repository';
+import {Entity, hasMany, hasOne, model, property} from '@loopback/repository';
 import {AccountCredentials} from './account-credentials.model';
+import {Profile} from './profile.model';
 
 @model()
 export class Account extends Entity {
@@ -24,13 +25,11 @@ export class Account extends Entity {
   })
   is_email_verified: boolean;
 
-  @property({
-    type: 'number',
-  })
-  payment_method: number;
-
   @hasOne(() => AccountCredentials, {keyTo: 'account_id'})
   accountCredentials: AccountCredentials;
+
+  @hasMany(() => Profile, {keyTo: 'account_id'})
+  profiles: Profile[];
 
   constructor(data?: Partial<Account>) {
     super(data);
