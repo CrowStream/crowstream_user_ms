@@ -1,0 +1,38 @@
+# Dummy docker-compose.yml for quick deploy for testing, NOT production
+version: '3.4'
+
+services:
+  user_db:
+    image: postgres:14.1
+    container_name: crowstream_user_db
+    environment:
+      - POSTGRES_PASSWORD='DummyPassword'
+      - POSTGRES_USER='DummyUser'
+      - POSTGRES_DB='DummyDB'
+    ports:
+      - '5432:5432'
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  user_ms:
+    image: crowstream2021/crowstream_user_ms:1.1.0
+    container_name: crowstream_user_ms
+    depends_on:
+      user_db:
+        condition: service_healthy
+    command: bash -c "npm run migrate && npm start"
+    environment:
+      - USER_DB_HOST=user_db
+      - USER_DB_PORT=5432
+      - USER_DB_USER='DummyUser'
+      - USER_DB_PASSWORD='DummyPassword'
+      - USER_DB_DATABASE='DummyDB'
+      - USER_MS_ACCESS_TOKEN_SECRET='DummyTokenSecret'
+      - USER_MS_ACCESS_TOKEN_EXPIRATION_TIME=2592000
+      - USER_MS_REFRESH_TOKEN_SECRET='DummyTokenSecret'
+      - USER_MS_REFRESH_TOKEN_EXPIRATION_TIME=2592000
+    ports:
+      - '3000:3000'
