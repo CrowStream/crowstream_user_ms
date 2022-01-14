@@ -25,6 +25,13 @@ export class Account extends Entity {
   })
   is_email_verified: boolean;
 
+  @property({
+    type: 'array',
+    itemType: 'string',
+    required: true,
+  })
+  roles: Array<string>;
+
   @hasOne(() => AccountCredentials, {keyTo: 'account_id'})
   accountCredentials: AccountCredentials;
 

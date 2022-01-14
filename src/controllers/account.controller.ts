@@ -12,14 +12,16 @@ import {
 } from '@loopback/rest';
 import {SecurityBindings, securityId, UserProfile} from '@loopback/security';
 import {AccountCredentialsBody} from '../bodies';
+import roles from '../constants/roles';
 import {Account, AccountCredentials} from '../models';
 import {AccountCredentialsSchema, TokenSchema} from '../schemas';
-import {AccountCredentialsService, AccountService} from '../services';
+import {AccountCredentialsService, AccountService, LdapService} from '../services';
 
 export class AccountController {
   constructor(
     @inject('services.AccountCredentialsService') protected accountCredentialsService: AccountCredentialsService,
-    @inject('services.AccountService') public accountService: AccountService,
+    @inject('services.AccountService') protected accountService: AccountService,
+    @inject('services.LdapService') protected ldapService: LdapService,
     @inject(TokenServiceBindings.TOKEN_SERVICE) protected jwtService: TokenService,
   ) { }
 
@@ -44,11 +46,12 @@ export class AccountController {
   ): Promise<Account> {
     const existingAccount = await this.accountService.findByEmail(newAccountRequest.email);
     if (existingAccount !== null) {
-      throw new HttpErrors[400]('The email provided is already in use');
+      throw new HttpErrors[400]('The provided email is already in use');
     }
 
     const newAccount = new Account({
       email: newAccountRequest.email,
+      roles: [roles.regularUser],
     });
     const accountCreated = await this.accountService.create(newAccount);
     if (accountCreated === undefined) {
@@ -63,6 +66,13 @@ export class AccountController {
     const accountCredentialsCreated = await this.accountCredentialsService.create(newAccountCredentials);
     if (accountCredentialsCreated === undefined) {
       throw new HttpErrors[500]('Account could not be created :c');
+    }
+
+    // Then we create the user in the ldap
+    newAccountRequest.password = password;
+    const userCreatedLdap = await this.ldapService.addUser(newAccountRequest, roles.regularUser);
+    if (!userCreatedLdap) {
+      throw new HttpErrors[500]('The user could not be created in ldap');
     }
 
     return accountCreated;
@@ -90,9 +100,12 @@ export class AccountController {
     const errorMessage = 'Email or password invalid';
 
     const account = await this.accountService.findByEmail(credentials.email);
+
     if (account === null) {
       throw new HttpErrors[404](errorMessage);
     }
+
+    const existsInLdap = this.ldapService.findUser(credentials, account.roles);
 
     const accountCredentials = await this.accountCredentialsService.findByAccountId(account.id);
     if (accountCredentials === null) {
