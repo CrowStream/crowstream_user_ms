@@ -14,6 +14,7 @@ export class AccountService {
     return {
       [securityId]: account.id,
       email: account.email,
+      roles: account.roles,
     };
   }
 
