@@ -31,6 +31,7 @@ export class LdapService {
       ldapClient.bind(this.adminDN, this.adminPassword, (err: any) => {
         if (err) {
           resolve(false);
+          return;
         }
         const emailParts = accountCredentials.email.split('@');
         const newUser = {
@@ -44,13 +45,36 @@ export class LdapService {
           newUser,
           (err: any) => {
             resolve(!err);
+            return;
           }
         )
       });
     })
   }
 
-  async findUser(accountCredentials: AccountCredentialsBody, roles: Array<string>): Promise<boolean> {
-    return true;
+  async authenticate(accountCredentials: AccountCredentialsBody, roles: Array<string>): Promise<boolean> {
+    return new Promise(async (resolve) => {
+      // Connect to ldap
+      const ldapClient = ldap.createClient(this.ldapClientOptions);
+
+      for (let i = 0; i < roles.length; i++) {
+        const isValid = await new Promise((resolve) => {
+          ldapClient.bind(
+            `cn=${accountCredentials.email}, ou=${roles[i]}, ${this.dn}`,
+            accountCredentials.password,
+            (err: any) => {
+              resolve(!err);
+              return;
+            }
+          )
+        });
+        if (!isValid) {
+          resolve(false);
+          return;
+        }
+      }
+      resolve(true);
+      return;
+    });
   }
 }

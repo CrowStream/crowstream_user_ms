@@ -69,7 +69,6 @@ export class AccountController {
     }
 
     // Then we create the user in the ldap
-    newAccountRequest.password = password;
     const userCreatedLdap = await this.ldapService.addUser(newAccountRequest, roles.regularUser);
     if (!userCreatedLdap) {
       throw new HttpErrors[500]('The user could not be created in ldap');
@@ -105,8 +104,6 @@ export class AccountController {
       throw new HttpErrors[404](errorMessage);
     }
 
-    const existsInLdap = this.ldapService.findUser(credentials, account.roles);
-
     const accountCredentials = await this.accountCredentialsService.findByAccountId(account.id);
     if (accountCredentials === null) {
       throw new HttpErrors[404](errorMessage);
@@ -118,6 +115,11 @@ export class AccountController {
     );
     if (!doesPasswordMatch) {
       throw new HttpErrors[404](errorMessage);
+    }
+
+    const authenticatedInLdap = this.ldapService.authenticate(credentials, account.roles);
+    if (!authenticatedInLdap) {
+      throw new HttpErrors[400](`${errorMessage}, user not found in ldap`);
     }
 
     const userProfile = this.accountService.convertToUserProfile(account);
