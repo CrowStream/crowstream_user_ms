@@ -71,7 +71,7 @@ export class AccountController {
     // Then we create the user in the ldap
     const userCreatedLdap = await this.ldapService.addUser(newAccountRequest, roles.regularUser);
     if (!userCreatedLdap) {
-      throw new HttpErrors[500]('The user could not be created in ldap');
+      throw new HttpErrors[400]('The user could not be created in ldap, user already exist');
     }
 
     return accountCreated;
@@ -117,7 +117,7 @@ export class AccountController {
       throw new HttpErrors[404](errorMessage);
     }
 
-    const authenticatedInLdap = this.ldapService.authenticate(credentials, account.roles);
+    const authenticatedInLdap = await this.ldapService.authenticate(credentials, account.roles);
     if (!authenticatedInLdap) {
       throw new HttpErrors[400](`${errorMessage}, user not found in ldap`);
     }
